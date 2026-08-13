@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALLISIS CONTROL</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- Header / Encabezado de Marca -->
+    <header class="bg-slate-900 text-white sticky top-0 z-30 shadow-md border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-600 text-white p-2.5 rounded-xl shadow-lg shadow-blue-900/30">
+                    <i class="fa-solid fa-network-wired text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight tracking-wide text-white">ALLISIS CONTROL</h1>
+                    <p class="text-xs text-slate-400">Control Operativo, Avances, Facturación y Cobranza</p>
+                </div>
+            </div>
+
+            <div class="hidden md:flex items-center gap-6 text-sm">
+                <button onclick="openModal('modalProject')" class="bg-blue-600 hover:bg-blue-500 text-white font-medium px-4 py-2 rounded-lg text-sm transition-all flex items-center gap-2 shadow-md">
+                    <i class="fa-solid fa-plus"></i> Nuevo Proyecto
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+        <!-- Navigation Tabs -->
+        <div class="bg-white rounded-2xl p-2 shadow-sm border border-slate-200 flex flex-wrap gap-1">
+            <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-btn active px-4 py-2.5 rounded-xl font-medium text-sm transition-all flex items-center gap-2 text-blue-600 bg-blue-50">
+                <i class="fa-solid fa-chart-pie"></i> Dashboard General
+            </button>
+            <button onclick="switchTab('projects')" id="tab-projects" class="tab-btn px-4 py-2.5 rounded-xl font-medium text-sm transition-all flex items-center gap-2 text-slate-600 hover:bg-slate-100">
+                <i class="fa-solid fa-list-check"></i> Proyectos & Expediente
+            </button>
+            <button onclick="switchTab('calendar')" id="tab-calendar" class="tab-btn px-4 py-2.5 rounded-xl font-medium text-sm transition-all flex items-center gap-2 text-slate-600 hover:bg-slate-100">
+                <i class="fa-solid fa-calendar-days"></i> Calendario de Pagos
+            </button>
+        </div>
+
+        <!-- TAB 1: DASHBOARD GENERAL -->
+        <section id="view-dashboard" class="space-y-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Monto Cotizado (USD)</p>
+                    <h3 class="text-2xl font-bold text-slate-900 mt-1" id="kpi-monto-usd">$0.00</h3>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Monto Cotizado (MXN)</p>
+                    <h3 class="text-2xl font-bold text-slate-900 mt-1" id="kpi-monto-mxn">$0.00</h3>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <p class="text-xs font-semibold uppercase tracking-wider text-rose-500">Gastos Registrados</p>
+                    <h3 class="text-2xl font-bold text-rose-600 mt-1" id="kpi-expenses">$0.00</h3>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <p class="text-xs font-semibold uppercase tracking-wider text-amber-600">Por Cobrar</p>
+                    <h3 class="text-2xl font-bold text-amber-600 mt-1" id="kpi-por-cobrar">$0.00</h3>
+                </div>
+            </div>
+
+            <!-- Pipeline Visualizer -->
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                <h3 class="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-bars-staggered text-blue-600"></i> Embudo de Proyectos por Estatus
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3" id="pipeline-container"></div>
+            </div>
+        </section>
+
+        <!-- TAB 2: PROYECTOS Y EXPEDIENTES -->
+        <section id="view-projects" class="hidden space-y-4">
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
+                <div class="relative w-full md:w-96">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-sm"></i>
+                    <input type="text" id="search-input" oninput="renderProjects()" placeholder="Buscar por cliente, título, PO, responsable..." class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                    <select id="filter-currency" onchange="renderProjects()" class="border border-slate-200 rounded-xl text-sm px-3 py-2 bg-slate-50">
+                        <option value="ALL">Todas las Monedas</option>
+                        <option value="USD">USD</option>
+                        <option value="MXN">MXN</option>
+                    </select>
+                    <button onclick="openModal('modalProject')" class="bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-xl hover:bg-blue-700 transition-all flex items-center gap-2 ml-auto">
+                        <i class="fa-solid fa-plus"></i> Registrar Proyecto
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-sm">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold text-xs uppercase tracking-wider">
+                                <th class="py-3.5 px-4">Proyecto & Responsable</th>
+                                <th class="py-3.5 px-4">Avance</th>
+                                <th class="py-3.5 px-4">PO & Validación ERP/GR</th>
+                                <th class="py-3.5 px-4">Expediente Factura</th>
+                                <th class="py-3.5 px-4">Programación Pago</th>
+                                <th class="py-3.5 px-4 text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="projects-table-body" class="divide-y divide-slate-100"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: CALENDARIO -->
+        <section id="view-calendar" class="hidden space-y-4">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-lg font-bold text-slate-900" id="calendar-month-year">Mes Año</h2>
+                    <div class="flex items-center gap-2">
+                        <button onclick="changeMonth(-1)" class="p-2 border border-slate-200 rounded-xl"><i class="fa-solid fa-chevron-left"></i></button>
+                        <button onclick="todayMonth()" class="px-3 py-1.5 border border-slate-200 rounded-xl text-xs font-semibold">Hoy</button>
+                        <button onclick="changeMonth(1)" class="p-2 border border-slate-200 rounded-xl"><i class="fa-solid fa-chevron-right"></i></button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-7 gap-px bg-slate-200 rounded-xl overflow-hidden border border-slate-200">
+                    <div class="bg-slate-50 p-2 text-center text-xs font-bold text-slate-500">DOM</div>
+                    <div class="bg-slate-50 p-2 text-center text-xs font-bold text-slate-500">LUN</div>
+                    <div class="bg-slate-50 p-2 text-center text-xs font-bold text-slate-500">MAR</div>
+                    <div class="bg-slate-50 p-2 text-center text-xs font-bold text-slate-500">MIÉ</div>
+                    <div class="bg-slate-50 p-2 text-center text-xs font-bold text-slate-500">JUE</div>
+                    <div class="bg-slate-50 p-2 text-center text-xs font-bold text-slate-500">VIE</div>
+                    <div class="bg-slate-50 p-2 text-center text-xs font-bold text-slate-500">SÁB</div>
+                </div>
+                <div id="calendar-days" class="grid grid-cols-7 gap-px bg-slate-200 rounded-b-xl overflow-hidden border-x border-b border-slate-200"></div>
+            </div>
+        </section>
+    </main>
+
+    <!-- MODAL: CREAR/EDITAR PROYECTO COMPLETO -->
+    <div id="modalProject" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-100 p-6 space-y-6 my-8">
+            <div class="flex items-center justify-between border-b pb-4">
+                <h3 class="text-lg font-bold text-slate-900" id="modal-title">Expediente de Proyecto</h3>
+                <button onclick="closeModal('modalProject')" class="text-slate-400 p-2"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+
+            <form id="project-form" onsubmit="saveProject(event)" class="space-y-6">
+                <input type="hidden" id="field-id">
+
+                <!-- SECCIÓN 1: DATOS Y AVANCE DEL PROYECTO -->
+                <div class="bg-slate-50 p-4 rounded-2xl space-y-4 border border-slate-200/80">
+                    <div class="flex items-center gap-2 text-blue-600 font-bold text-sm">
+                        <i class="fa-solid fa-bars-progress"></i> SEGUIMIENTO DEL PROYECTO
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                        <div>
+                            <label class="font-semibold block mb-1">Título del Proyecto *</label>
+                            <input type="text" id="field-title" required class="w-full border p-2.5 rounded-xl bg-white">
+                        </div>
+                        <div>
+                            <label class="font-semibold block mb-1">Cliente *</label>
+                            <input type="text" id="field-client" required class="w-full border p-2.5 rounded-xl bg-white">
+                        </div>
+                        <div>
+                            <label class="font-semibold block mb-1">Responsable del Proyecto *</label>
+                            <input type="text" id="field-owner" required placeholder="Ej. Ing. Carlos P." class="w-full border p-2.5 rounded-xl bg-white">
+                        </div>
+                        <div>
+                            <label class="font-semibold block mb-1">Porcentaje de Avance (%)</label>
+                            <input type="number" id="field-progress" min="0" max="100" value="0" class="w-full border p-2.5 rounded-xl bg-white">
+                        </div>
+                        <div>
+                            <label class="font-semibold block mb-1">Monto Cotizado *</label>
+                            <input type="number" step="0.01" id="field-amount" required class="w-full border p-2.5 rounded-xl bg-white">
+                        </div>
+                        <div>
+                            <label class="font-semibold block mb-1">Moneda *</label>
+                            <select id="field-currency" required class="w-full border p-2.5 rounded-xl bg-white">
+                                <option value="USD">USD ($)</option>
+                                <option value="MXN">MXN ($)</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-3">
+                            <label class="font-semibold block mb-1">PDF Cotización (Archivo / Enlace)</label>
+                            <div class="flex gap-1">
+                                <input type="file" id="quotePdfFile" accept="application/pdf" onchange="convertFileToBase64(this, 'quote')" class="hidden">
+                                <button type="button" onclick="document.getElementById('quotePdfFile').click()" class="bg-slate-200 text-slate-700 px-3 py-1 rounded-lg text-xs font-semibold"><i class="fa-solid fa-paperclip"></i> Adjuntar</button>
+                                <input type="text" id="field-doc-quote" placeholder="O pega un enlace web al archivo" class="w-full border p-2 rounded-xl bg-white">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN 2: ORDEN DE COMPRA (PO) & REQUISITOS DEL CLIENTE -->
+                <div class="bg-slate-50 p-4 rounded-2xl space-y-4 border border-slate-200/80">
+                    <div class="flex items-center gap-2 text-indigo-600 font-bold text-sm">
+                        <i class="fa-solid fa-receipt"></i> ORDEN DE COMPRA (PO) & REQUISITOS
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                        <div>
+                            <label class="font-semibold block mb-1">Número de PO #</label>
+                            <input type="text" id="field-po-number" class="w-full border p-2.5 rounded-xl bg-white">
+                        </div>
+                        <div>
+                            <label class="font-semibold block mb-1">Fecha Recepción PO</label>
+                            <input type="date" id="field-po-date" class="w-full border p-2.5 rounded-xl bg-white">
+                        </div>
+                        <div>
+                            <label class="font-semibold block mb-1">PDF de la PO</label>
+                            <div class="flex gap-1">
+                                <input type="file" id="poPdfFile" accept="application/pdf" onchange="convertFileToBase64(this, 'po')" class="hidden">
+                                <button type="button" onclick="document.getElementById('poPdfFile').click()" class="bg-slate-200 text-slate-700 px-3 py-1 rounded-lg text-xs font-semibold"><i class="fa-solid fa-paperclip"></i> Adjuntar</button>
+                                <input type="text" id="field-doc-po" placeholder="Link o Nombre" class="w-full border p-2 rounded-xl bg-white">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="font-semibold block mb-1">¿Aplica Registro ERP del Cliente?</label>
+                            <select id="field-req-erp" class="w-full border p-2.5 rounded-xl bg-white">
+                                <option value="NO">No Requiere ERP</option>
+                                <option value="SI">Sí - Pendiente Registro</option>
+                                <option value="COMPLETADO">Sí - Registrado en ERP</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="font-semibold block mb-1">¿Aplica GR (Goods Receipt)?</label>
+                            <select id="field-req-gr" class="w-full border p-2.5 rounded-xl bg-white">
+                                <option value="NO">No Requiere GR</option>
+                                <option value="SI">Sí - Pendiente GR</option>
+                                <option value="COMPLETADO">Sí - GR Recibida</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN 3: EXPEDIENTE DE FACTURACIÓN Y PROGRAMACIÓN -->
+                <div class="bg-slate-50 p-4 rounded-2xl space-y-4 border border-slate-200/80">
+                    <div class="flex items-center gap-2 text-amber-600 font-bold text-sm">
+                        <i class="fa-solid fa-file-invoice-dollar"></i> EXPEDIENTE DE FACTURACIÓN Y COBRANZA
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                        <div>
+                            <label class="font-semibold block mb-1">Folio Factura</label>
+                            <input type="text" id="field-inv-number" class="w-full border p-2.5 rounded-xl bg-white">
+                        </div>
+                        <div>
+                            <label class="font-semibold block mb-1">Fecha Emisión Factura</label>
+                            <input type="date" id="field-inv-date" onchange="calculatePaymentDate()" class="w-full border p-2.5 rounded-xl bg-white">
+                        </div>
+                        <div>
+                            <label class="font-semibold block mb-1">Términos de Pago (Días)</label>
+                            <select id="field-payment-term" onchange="calculatePaymentDate()" class="w-full border p-2.5 rounded-xl bg-white">
+                                <option value="0">Contado (0 Días)</option>
+                                <option value="15">15 Días</option>
+                                <option value="30" selected>30 Días</option>
+                                <option value="45">45 Días</option>
+                                <option value="60">60 Días</option>
+                                <option value="90">90 Días</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="font-semibold block mb-1">Fecha Programada de Pago</label>
+                            <input type="date" id="field-pay-calc-date" readonly class="w-full border p-2.5 rounded-xl bg-slate-100 font-bold text-blue-600">
+                        </div>
+                        <div>
+                            <label class="font-semibold block mb-1">Estatus del Pago</label>
+                            <select id="field-pay-status" class="w-full border p-2.5 rounded-xl bg-white">
+                                <option value="PENDIENTE">Pendiente Facturación</option>
+                                <option value="PROGRAMADO">Programado por Cliente</option>
+                                <option value="PAGADO">Cobrado</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- SUBIDA DE DOCUMENTOS FISCALES -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs border-t border-slate-200 pt-3">
+                        <div>
+                            <label class="font-semibold block mb-1">PDF Factura Original</label>
+                            <input type="file" id="invPdfFile" accept="application/pdf" onchange="convertFileToBase64(this, 'invPdf')" class="hidden">
+                            <div class="flex gap-1">
+                                <button type="button" onclick="document.getElementById('invPdfFile').click()" class="bg-slate-200 p-2 rounded-lg"><i class="fa-solid fa-paperclip"></i></button>
+                                <input type="text" id="field-doc-inv-pdf" placeholder="URL o Archivo PDF" class="w-full border p-2 rounded-xl bg-white">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="font-semibold block mb-1">PDF Factura Sellada / Entregada</label>
+                            <input type="file" id="stampedPdfFile" accept="application/pdf" onchange="convertFileToBase64(this, 'stampedPdf')" class="hidden">
+                            <div class="flex gap-1">
+                                <button type="button" onclick="document.getElementById('stampedPdfFile').click()" class="bg-slate-200 p-2 rounded-lg"><i class="fa-solid fa-file-signature"></i></button>
+                                <input type="text" id="field-doc-stamped-pdf" placeholder="PDF Sellado/FIRMADO" class="w-full border p-2 rounded-xl bg-white">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="font-semibold block mb-1">XML (Factura MX)</label>
+                            <input type="file" id="xmlFile" accept=".xml" onchange="convertFileToBase64(this, 'xml')" class="hidden">
+                            <div class="flex gap-1">
+                                <button type="button" onclick="document.getElementById('xmlFile').click()" class="bg-slate-200 p-2 rounded-lg"><i class="fa-solid fa-code"></i></button>
+                                <input type="text" id="field-doc-xml" placeholder="Archivo XML" class="w-full border p-2 rounded-xl bg-white">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-3 border-t pt-4">
+                    <button type="button" onclick="closeModal('modalProject')" class="px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold">Cancelar</button>
+                    <button type="submit" class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold">Guardar Proyecto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: CONTROL DE GASTOS -->
+    <div id="modalExpenses" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-100 p-6 space-y-6">
+            <div class="flex items-center justify-between border-b pb-3">
+                <h3 class="text-base font-bold text-slate-900">Gastos Registrados en Proyecto</h3>
+                <button onclick="closeModal('modalExpenses')" class="text-slate-400 p-2"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <form onsubmit="addExpense(event)" class="grid grid-cols-1 md:grid-cols-4 gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200 text-xs">
+                <input type="hidden" id="expense-proj-id">
+                
+                <div class="md:col-span-2">
+                    <label class="font-semibold block mb-1">Concepto / Proveedor *</label>
+                    <input type="text" id="exp-concept" required placeholder="Materiales, Maquinado" class="w-full border p-2 rounded-lg bg-white">
+                </div>
+                <div>
+                    <label class="font-semibold block mb-1">Monto *</label>
+                    <input type="number" step="0.01" id="exp-amount" required placeholder="0.00" class="w-full border p-2 rounded-lg bg-white">
+                </div>
+                <div>
+                    <label class="font-semibold block mb-1">Orden de Compra A Proveedor (Si Aplica)</label>
+                    <input type="text" id="exp-po-supplier" placeholder="Ej. OC-PROV-001 / N/A" class="w-full border p-2 rounded-lg bg-white">
+                </div>
+                
+                <div class="md:col-span-2">
+                    <label class="font-semibold block mb-1">Comprobante de Pago</label>
+                    <input type="file" id="expPaymentFile" accept="application/pdf,image/*" onchange="convertExpenseFileToBase64(this, 'expPaymentDoc')" class="w-full text-slate-500 text-[11px] file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="font-semibold block mb-1">Factura Proveedor</label>
+                    <input type="file" id="expInvoiceFile" accept="application/pdf,.xml,image/*" onchange="convertExpenseFileToBase64(this, 'expInvoiceDoc')" class="w-full text-slate-500 text-[11px] file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300">
+                </div>
+
+                <div class="md:col-span-4 flex justify-end pt-2">
+                    <button type="submit" class="bg-rose-600 text-white px-4 py-2 rounded-xl font-semibold hover:bg-rose-700 transition-all">
+                        <i class="fa-solid fa-plus"></i> Registrar Gasto
+                    </button>
+                </div>
+            </form>
+
+            <div class="space-y-2 max-h-60 overflow-y-auto" id="expenses-list"></div>
+        </div>
+    </div>
+
+    <!-- LÓGICA Y SCRIPT -->
+    <script>
+        let projects = JSON.parse(localStorage.getItem('crm_projects_full_data')) || [];
+        let currentCalendarDate = new Date();
+        
+        let tempFiles = {
+            quote: '',
+            po: '',
+            invPdf: '',
+            stampedPdf: '',
+            xml: ''
+        };
+
+        let tempExpenseFiles = {
+            expPaymentDoc: '',
+            expInvoiceDoc: ''
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderAll();
+        });
+
+        function saveState() {
+            localStorage.setItem('crm_projects_full_data', JSON.stringify(projects));
+        }
+
+        function renderAll() {
+            renderDashboard();
+            renderProjects();
+            renderCalendar();
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active', 'text-blue-600', 'bg-blue-50');
+                btn.classList.add('text-slate-600');
+            });
+            document.getElementById(`tab-${tabId}`).classList.add('active', 'text-blue-600', 'bg-blue-50');
+
+            document.getElementById('view-dashboard').classList.add('hidden');
+            document.getElementById('view-projects').classList.add('hidden');
+            document.getElementById('view-calendar').classList.add('hidden');
+
+            document.getElementById(`view-${tabId}`).classList.remove('hidden');
+        }
+
+        function convertFileToBase64(input, typeKey) {
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    tempFiles[typeKey] = e.target.result;
+                    alert('Archivo preparado exitosamente');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function convertExpenseFileToBase64(input, typeKey) {
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    tempExpenseFiles[typeKey] = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function calculatePaymentDate() {
+            const invDateVal = document.getElementById('field-inv-date').value;
+            const termDays = parseInt(document.getElementById('field-payment-term').value) || 0;
+
+            if (invDateVal) {
+                const parts = invDateVal.split('-');
+                const date = new Date(parts[0], parts[1] - 1, parts[2]);
+                date.setDate(date.getDate() + termDays);
+                
+                const yyyy = date.getFullYear();
+                const mm = String(date.getMonth() + 1).padStart(2, '0');
+                const dd = String(date.getDate()).padStart(2, '0');
+                
+                document.getElementById('field-pay-calc-date').value = `${yyyy}-${mm}-${dd}`;
+            }
+        }
+
+        function renderDashboard() {
+            const usdTotal = projects.filter(p => p.currency === 'USD').reduce((acc, p) => acc + Number(p.amount), 0);
+            const mxnTotal = projects.filter(p => p.currency === 'MXN').reduce((acc, p) => acc + Number(p.amount), 0);
+            
+            let totalExpenses = 0;
+            projects.forEach(p => {
+                if (p.expenses) totalExpenses += p.expenses.reduce((acc, e) => acc + Number(e.amount), 0);
+            });
+
+            document.getElementById('kpi-monto-usd').innerText = `$${usdTotal.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+            document.getElementById('kpi-monto-mxn').innerText = `$${mxnTotal.toLocaleString('es-MX', {minimumFractionDigits: 2})}`;
+            document.getElementById('kpi-expenses').innerText = `$${totalExpenses.toLocaleString('es-MX', {minimumFractionDigits: 2})}`;
+
+            const pendingPay = projects.filter(p => p.payStatus !== 'PAGADO').reduce((acc, p) => acc + Number(p.amount), 0);
+            document.getElementById('kpi-por-cobrar').innerText = `$${pendingPay.toLocaleString('es-MX', {minimumFractionDigits: 2})}`;
+
+            const stages = [
+                { title: 'En Proceso / Cotizado', filter: p => Number(p.progress) < 100 && p.payStatus !== 'PAGADO', color: 'border-blue-500' },
+                { title: 'Completado - Por Cobrar', filter: p => Number(p.progress) === 100 && p.payStatus !== 'PAGADO', color: 'border-amber-500' },
+                { title: 'Cobrado', filter: p => p.payStatus === 'PAGADO', color: 'border-emerald-500' }
+            ];
+
+            const pipeContainer = document.getElementById('pipeline-container');
+            pipeContainer.innerHTML = '';
+
+            stages.forEach(s => {
+                const filtered = projects.filter(s.filter);
+                pipeContainer.innerHTML += `
+                    <div class="bg-slate-50 p-3 rounded-xl border-t-4 ${s.color} border-slate-200">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="font-bold text-xs text-slate-700">${s.title}</span>
+                            <span class="bg-slate-200 text-slate-700 text-xs px-2 py-0.5 rounded-full font-bold">${filtered.length}</span>
+                        </div>
+                        <div class="space-y-2 max-h-80 overflow-y-auto">
+                            ${filtered.map(p => `
+                                <div onclick="editProject('${p.id}')" class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm cursor-pointer hover:border-blue-400 transition-all">
+                                    <div class="font-semibold text-xs text-slate-900">${p.title}</div>
+                                    <div class="text-xs text-slate-500">${p.client} | Resp: ${p.owner || 'S/A'}</div>
+                                    <div class="w-full bg-slate-100 rounded-full h-1.5 mt-2">
+                                        <div class="bg-blue-600 h-1.5 rounded-full" style="width: ${p.progress || 0}%"></div>
+                                    </div>
+                                    <div class="mt-2 font-bold text-blue-600 text-xs flex justify-between">
+                                        <span>${p.currency} $${Number(p.amount).toLocaleString()}</span>
+                                        <span class="text-slate-400 font-normal">${p.progress}%</span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function renderProjects() {
+            const search = document.getElementById('search-input').value.toLowerCase();
+            const currency = document.getElementById('filter-currency').value;
+
+            const filtered = projects.filter(p => {
+                const matchesSearch = p.title.toLowerCase().includes(search) || 
+                                      p.client.toLowerCase().includes(search) || 
+                                      (p.owner && p.owner.toLowerCase().includes(search)) ||
+                                      (p.poNumber && p.poNumber.toLowerCase().includes(search));
+                const matchesCurrency = currency === 'ALL' || p.currency === currency;
+                return matchesSearch && matchesCurrency;
+            });
+
+            const tbody = document.getElementById('projects-table-body');
+            tbody.innerHTML = '';
+
+            filtered.forEach(p => {
+                const totalExp = (p.expenses || []).reduce((acc, e) => acc + Number(e.amount), 0);
+                
+                // Badges ERP / GR
+                let erpBadge = p.reqErp === 'SI' ? '<span class="px-1.5 py-0.5 rounded text-[9px] bg-amber-100 text-amber-800 font-bold">ERP Pendiente</span>' : (p.reqErp === 'COMPLETADO' ? '<span class="px-1.5 py-0.5 rounded text-[9px] bg-emerald-100 text-emerald-800 font-bold">ERP Listo</span>' : '');
+                let grBadge = p.reqGr === 'SI' ? '<span class="px-1.5 py-0.5 rounded text-[9px] bg-amber-100 text-amber-800 font-bold">GR Pendiente</span>' : (p.reqGr === 'COMPLETADO' ? '<span class="px-1.5 py-0.5 rounded text-[9px] bg-emerald-100 text-emerald-800 font-bold">GR Recibida</span>' : '');
+
+                // Archivos
+                let docs = [];
+                if(p.docInvPdf) docs.push(`<a href="${p.docInvPdf}" target="_blank" class="text-blue-600 text-xs font-semibold block"><i class="fa-solid fa-file-pdf text-rose-500"></i> Factura PDF</a>`);
+                if(p.docStampedPdf) docs.push(`<a href="${p.docStampedPdf}" target="_blank" class="text-emerald-600 text-xs font-semibold block"><i class="fa-solid fa-file-signature text-emerald-500"></i> Factura Sellada</a>`);
+                if(p.docXml) docs.push(`<a href="${p.docXml}" target="_blank" class="text-amber-600 text-xs font-semibold block"><i class="fa-solid fa-code"></i> Archivo XML</a>`);
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition-all text-xs">
+                        <td class="py-3 px-4">
+                            <div class="font-bold text-slate-900">${p.title}</div>
+                            <div class="text-slate-500">${p.client}</div>
+                            <div class="text-slate-400 mt-0.5"><i class="fa-solid fa-user-gear text-[10px]"></i> ${p.owner || 'Sin asignar'}</div>
+                        </td>
+                        <td class="py-3 px-4 w-32">
+                            <div class="font-bold text-slate-700 mb-1">${p.progress || 0}%</div>
+                            <div class="w-full bg-slate-200 rounded-full h-2">
+                                <div class="bg-blue-600 h-2 rounded-full" style="width: ${p.progress || 0}%"></div>
+                            </div>
+                        </td>
+                        <td class="py-3 px-4">
+                            <div class="font-mono font-bold text-slate-700">${p.poNumber || 'S/N'}</div>
+                            <div class="flex flex-wrap gap-1 mt-1">${erpBadge} ${grBadge}</div>
+                        </td>
+                        <td class="py-3 px-4 space-y-1">
+                            <div class="font-bold text-slate-800">${p.invNumber ? 'Folio: ' + p.invNumber : 'Sin Facturar'}</div>
+                            ${docs.length > 0 ? docs.join('') : '<span class="text-slate-400 italic">Sin adjuntos</span>'}
+                        </td>
+                        <td class="py-3 px-4">
+                            <div class="font-bold text-blue-600">${p.payCalcDate || 'Sin programar'}</div>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${p.payStatus === 'PAGADO' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${p.payStatus}</span>
+                        </td>
+                        <td class="py-3 px-4 text-center space-x-1">
+                            <button onclick="editProject('${p.id}')" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg" title="Editar Expediente"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="openExpensesModal('${p.id}')" class="p-2 text-rose-600 hover:bg-rose-50 rounded-lg" title="Gastos"><i class="fa-solid fa-receipt"></i></button>
+                            <button onclick="deleteProject('${p.id}')" class="p-2 text-slate-400 hover:text-rose-600 rounded-lg"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function renderCalendar() {
+            const year = currentCalendarDate.getFullYear();
+            const month = currentCalendarDate.getMonth();
+            const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+            document.getElementById('calendar-month-year').innerText = `${monthNames[month]} ${year}`;
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const calendarGrid = document.getElementById('calendar-days');
+            calendarGrid.innerHTML = '';
+
+            for (let i = 0; i < firstDay; i++) {
+                calendarGrid.innerHTML += `<div class="bg-slate-50 min-h-[90px] p-1"></div>`;
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dayPayments = projects.filter(p => p.payCalcDate === dateStr);
+
+                calendarGrid.innerHTML += `
+                    <div class="bg-white min-h-[90px] p-1.5 border-t border-slate-100 flex flex-col justify-between">
+                        <div class="font-bold text-xs text-slate-700">${day}</div>
+                        <div class="space-y-1 overflow-y-auto max-h-16">
+                            ${dayPayments.map(p => `
+                                <div onclick="editProject('${p.id}')" class="p-1 rounded text-[10px] font-bold cursor-pointer ${p.payStatus === 'PAGADO' ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'}">
+                                    ${p.client} (${p.invNumber || 'S/F'}) - $${Number(p.amount).toLocaleString()}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function changeMonth(delta) { currentCalendarDate.setMonth(currentCalendarDate.getMonth() + delta); renderCalendar(); }
+        function todayMonth() { currentCalendarDate = new Date(); renderCalendar(); }
+
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        function saveProject(e) {
+            e.preventDefault();
+            const id = document.getElementById('field-id').value || `PROJ-${Date.now()}`;
+            const existingIndex = projects.findIndex(p => p.id === id);
+
+            const projectData = {
+                id: id,
+                title: document.getElementById('field-title').value,
+                client: document.getElementById('field-client').value,
+                owner: document.getElementById('field-owner').value,
+                progress: document.getElementById('field-progress').value,
+                amount: Number(document.getElementById('field-amount').value),
+                currency: document.getElementById('field-currency').value,
+                docQuote: tempFiles.quote || document.getElementById('field-doc-quote').value,
+                poNumber: document.getElementById('field-po-number').value,
+                poDate: document.getElementById('field-po-date').value,
+                docPo: tempFiles.po || document.getElementById('field-doc-po').value,
+                reqErp: document.getElementById('field-req-erp').value,
+                reqGr: document.getElementById('field-req-gr').value,
+                invNumber: document.getElementById('field-inv-number').value,
+                invDate: document.getElementById('field-inv-date').value,
+                paymentTerm: Number(document.getElementById('field-payment-term').value),
+                payCalcDate: document.getElementById('field-pay-calc-date').value,
+                payStatus: document.getElementById('field-pay-status').value,
+                docInvPdf: tempFiles.invPdf || document.getElementById('field-doc-inv-pdf').value,
+                docStampedPdf: tempFiles.stampedPdf || document.getElementById('field-doc-stamped-pdf').value,
+                docXml: tempFiles.xml || document.getElementById('field-doc-xml').value,
+                expenses: existingIndex >= 0 ? projects[existingIndex].expenses : []
+            };
+
+            if (existingIndex >= 0) projects[existingIndex] = projectData;
+            else projects.push(projectData);
+
+            saveState();
+            closeModal('modalProject');
+            renderAll();
+            document.getElementById('project-form').reset();
+            tempFiles = { quote: '', po: '', invPdf: '', stampedPdf: '', xml: '' };
+        }
+
+        function editProject(id) {
+            const p = projects.find(proj => proj.id === id);
+            if (!p) return;
+
+            document.getElementById('field-id').value = p.id;
+            document.getElementById('field-title').value = p.title || '';
+            document.getElementById('field-client').value = p.client || '';
+            document.getElementById('field-owner').value = p.owner || '';
+            document.getElementById('field-progress').value = p.progress || 0;
+            document.getElementById('field-amount').value = p.amount || '';
+            document.getElementById('field-currency').value = p.currency || 'USD';
+            document.getElementById('field-doc-quote').value = p.docQuote && !p.docQuote.startsWith('data:') ? p.docQuote : '';
+            document.getElementById('field-po-number').value = p.poNumber || '';
+            document.getElementById('field-po-date').value = p.poDate || '';
+            document.getElementById('field-doc-po').value = p.docPo && !p.docPo.startsWith('data:') ? p.docPo : '';
+            document.getElementById('field-req-erp').value = p.reqErp || 'NO';
+            document.getElementById('field-req-gr').value = p.reqGr || 'NO';
+            document.getElementById('field-inv-number').value = p.invNumber || '';
+            document.getElementById('field-inv-date').value = p.invDate || '';
+            document.getElementById('field-payment-term').value = p.paymentTerm || 30;
+            document.getElementById('field-pay-calc-date').value = p.payCalcDate || '';
+            document.getElementById('field-pay-status').value = p.payStatus || 'PENDIENTE';
+            document.getElementById('field-doc-inv-pdf').value = p.docInvPdf && !p.docInvPdf.startsWith('data:') ? p.docInvPdf : '';
+            document.getElementById('field-doc-stamped-pdf').value = p.docStampedPdf && !p.docStampedPdf.startsWith('data:') ? p.docStampedPdf : '';
+            document.getElementById('field-doc-xml').value = p.docXml && !p.docXml.startsWith('data:') ? p.docXml : '';
+
+            openModal('modalProject');
+        }
+
+        function deleteProject(id) {
+            if (confirm('¿Deseas eliminar este registro de proyecto?')) {
+                projects = projects.filter(p => p.id !== id);
+                saveState();
+                renderAll();
+            }
+        }
+
+        // GASTOS
+        function openExpensesModal(projId) {
+            document.getElementById('expense-proj-id').value = projId;
+            const p = projects.find(proj => proj.id === projId);
+            renderExpensesList(p);
+            openModal('modalExpenses');
+        }
+
+        function renderExpensesList(project) {
+            const container = document.getElementById('expenses-list');
+            container.innerHTML = '';
+            const expenses = project.expenses || [];
+
+            if (expenses.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-400 italic text-center py-4">Sin gastos registrados.</p>`;
+                return;
+            }
+
+            expenses.forEach((e, idx) => {
+                let paymentLink = e.paymentDoc ? `<a href="${e.paymentDoc}" target="_blank" class="text-blue-600 font-semibold hover:underline block"><i class="fa-solid fa-file-invoice-dollar"></i> Ver Comprobante Pago</a>` : '';
+                let invoiceLink = e.invoiceDoc ? `<a href="${e.invoiceDoc}" target="_blank" class="text-emerald-600 font-semibold hover:underline block"><i class="fa-solid fa-file-pdf"></i> Ver Factura Proveedor</a>` : '';
+
+                container.innerHTML += `
+                    <div class="flex justify-between items-center bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-xs">
+                        <div class="space-y-0.5">
+                            <div class="font-bold text-slate-800">${e.concept}</div>
+                            <div class="text-slate-500 font-semibold">$${Number(e.amount).toLocaleString()}</div>
+                            ${e.poSupplier ? `<div class="text-[11px] text-slate-500"><span class="font-medium">OC Proveedor:</span> ${e.poSupplier}</div>` : ''}
+                            <div class="flex flex-wrap gap-3 mt-1 text-[11px]">
+                                ${paymentLink}
+                                ${invoiceLink}
+                            </div>
+                        </div>
+                        <button onclick="removeExpense('${project.id}', ${idx})" class="text-rose-500 hover:text-rose-700 p-2"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                `;
+            });
+        }
+
+        function addExpense(e) {
+            e.preventDefault();
+            const projId = document.getElementById('expense-proj-id').value;
+            const p = projects.find(proj => proj.id === projId);
+            if (!p) return;
+
+            if (!p.expenses) p.expenses = [];
+            
+            p.expenses.push({
+                concept: document.getElementById('exp-concept').value,
+                amount: Number(document.getElementById('exp-amount').value),
+                poSupplier: document.getElementById('exp-po-supplier').value || '',
+                paymentDoc: tempExpenseFiles.expPaymentDoc || '',
+                invoiceDoc: tempExpenseFiles.expInvoiceDoc || ''
+            });
+
+            saveState();
+            renderExpensesList(p);
+            renderProjects();
+            renderDashboard();
+
+            // Reset del formulario de gastos
+            document.getElementById('exp-concept').value = '';
+            document.getElementById('exp-amount').value = '';
+            document.getElementById('exp-po-supplier').value = '';
+            document.getElementById('expPaymentFile').value = '';
+            document.getElementById('expInvoiceFile').value = '';
+            tempExpenseFiles = { expPaymentDoc: '', expInvoiceDoc: '' };
+        }
+
+        function removeExpense(projId, idx) {
+            const p = projects.find(proj => proj.id === projId);
+            if (!p) return;
+            p.expenses.splice(idx, 1);
+            saveState();
+            renderExpensesList(p);
+            renderProjects();
+            renderDashboard();
+        }
+    </script>
+</body>
+</html>
